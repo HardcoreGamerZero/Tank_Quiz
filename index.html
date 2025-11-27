@@ -24,7 +24,6 @@
   button.wrong{background:var(--red)!important;border-color:var(--red);}
   #result{font-size:1.9em;font-weight:bold;text-align:center;min-height:70px;margin:20px 0;}
   #nextBtn{display:none;margin:30px auto;padding:16px 50px;font-size:1.5em;background:var(--accent);border:none;border-radius:12px;cursor:pointer;}
-  #final{text-align:center;padding:50px;}
 </style>
 </head>
 <body>
@@ -48,35 +47,17 @@
 <script>
 // 100% CORRECT ORDER – confirmed by you
 const vehicles = [
-  "ASLAV T-1 CRV (Australia)",           // 6394
-  "M2 Bradley IFV (USA)",                 // 6395
-  "Ajax CRV (UK)",                        // 6396
-  "Lynx IFV (Germany)",                   // 6397
-  "Hunter IFV (Singapore)",               // 6398
-  "Boxer CRV (Australia)",               // 6399
-  "ZBD-05 IFV (China)",                   // 6400
-  "ZBD-04 IFV (China)",                   // 6401
-  "BTR-80 APC (Russia)",                  // 6402
-  "ZLT-09 Light Tank (China)",            // 6403
-  "T-90 MBT (Russia)",                    // 6404
-  "Type-63A Light Tank (China)",          // 6405
-  "K2 Black Panther MBT (South Korea)",   // 6406
-  "Type-99 MBT (China)",                  // 6407
-  "M1A1 Abrams MBT (USA)",                // 6408
-  "Tunguska 2S6 SPAA (Russia)",           // 6409
-  "K9 Thunder SP Artillery (South Korea)",// 6410
-  "CH-47 Chinook Transport (USA)",        // 6411
-  "V-22 Osprey Transport (USA)",          // 6412
-  "UH-60 Black Hawk Transport (USA)",     // 6413
-  "AH-64 Apache Attack (USA)",            // 6414
-  "Mi-24 Hind Ground Attack (Russia)",    // 6415
-  "Eurocopter Tiger Attack (Europe)",     // 6416
-  "Su-27 Flanker Fighter (Russia)",       // 6417
-  "J-20 Mighty Dragon Stealth Fighter (China)", // 6418
-  "F-35 Lightning II (USA)"               // 6419
+  "ASLAV T-1 CRV (Australia)", "M2 Bradley IFV (USA)", "Ajax CRV (UK)", "Lynx IFV (Germany)",
+  "Hunter IFV (Singapore)", "Boxer CRV (Australia)", "ZBD-05 IFV (China)", "ZBD-04 IFV (China)",
+  "BTR-80 APC (Russia)", "ZLT-09 Light Tank (China)", "T-90 MBT (Russia)", "Type-63A Light Tank (China)",
+  "K2 Black Panther MBT (South Korea)", "Type-99 MBT (China)", "M1A1 Abrams MBT (USA)", "Tunguska 2S6 SPAA (Russia)",
+  "K9 Thunder SP Artillery (South Korea)", "CH-47 Chinook Transport (USA)", "V-22 Osprey Transport (USA)",
+  "UH-60 Black Hawk Transport (USA)", "AH-64 Apache Attack (USA)", "Mi-24 Hind Ground Attack (Russia)",
+  "Eurocopter Tiger Attack (Europe)", "Su-27 Flanker Fighter (Russia)", "J-20 Mighty Dragon Stealth Fighter (China)",
+  "F-35 Lightning II (USA)"
 ];
 
-let current = 0, score = 0, order = [];
+let current = 0, score = 0, order = [], timeout;
 
 function shuffle(arr) { return arr.map(x => [Math.random(), x]).sort(([a],[b]) => a-b).map(([_,x]) => x); }
 
@@ -96,14 +77,23 @@ function showQuestion() {
   document.getElementById("progressBar").style.width = `${(current / 26) * 100}%`;
 
   const img = document.getElementById("vehicleImage");
-  document.querySelector(".loading").style.display = "flex";
+  const loading = document.querySelector(".loading");
+  loading.style.display = "flex";
   img.style.display = "none";
 
   const fileNum = 6394 + idx;
-  img.src = `IMG_${fileNum} Large.jpg?t=${Date.now()}`;
+  const filename = `IMG_${fileNum} Large.jpg`;
+  img.src = encodeURIComponent(filename) + "?v=" + Date.now();   // ← THIS FIXES THE SPINNER BUG
+
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    loading.style.display = "none";
+    img.style.display = "block";
+  }, 5000); // fallback if onload never fires
 
   img.onload = () => {
-    document.querySelector(".loading").style.display = "none";
+    clearTimeout(timeout);
+    loading.style.display = "none";
     img.style.display = "block";
   };
 
@@ -127,10 +117,10 @@ function selectAnswer(isCorrect, correctName, btn) {
   if (isCorrect) {
     btn.classList.add("correct");
     score++;
-    document.getElementById("result").innerHTML = "✔ Correct!";
+    document.getElementById("result").innerHTML = "Correct!";
   } else {
     btn.classList.add("wrong");
-    document.getElementById("result").innerHTML = `✖ Wrong!<br>Correct: <strong>${correctName}</strong>`;
+    document.getElementById("result").innerHTML = `Wrong!<br>Correct: <strong>${correctName}</strong>`;
   }
   document.getElementById("nextBtn").style.display = "block";
 }
@@ -143,11 +133,11 @@ function nextQuestion() {
 function finishQuiz() {
   const pct = Math.round((score / 26) * 100);
   document.getElementById("quiz").innerHTML = `
-    <div id="final">
-      <h2>🎖️ Quiz Complete!</h2>
+    <div style="text-align:center;padding:50px;">
+      <h2>Quiz Complete!</h2>
       <p style="font-size:4em;margin:30px 0">${score}<small style="font-size:0.4em">/26</small></p>
       <p style="font-size:2.5em">${pct}% Correct</p>
-      <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.7em;margin-top:30px;">Play Again</button>
+      <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.7em;margin-top:30px;background:var(--accent);border:none;border-radius:12px;">Play Again</button>
     </div>`;
   if (pct === 100) confetti({particleCount: 600, spread: 100, origin: {y: 0.6}});
 }
