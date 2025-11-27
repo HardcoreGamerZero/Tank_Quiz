@@ -12,8 +12,17 @@
   #progress{height:10px;background:#30363d;border-radius:5px;overflow:hidden;margin:20px 0;}
   #progressBar{height:100%;width:0;background:var(--accent);transition:width .6s ease;}
   #question{font-size:1.7em;text-align:center;margin-bottom:20px;}
-  #imageContainer{position:relative;width:100%;height:520px;overflow:hidden;background:#000;border-radius:12px;margin:20px 0;}
-  #vehicleImage{position:absolute;top:-25%;left:50%;transform:translateX(-50%);width:100%;height:auto;}
+  #imageContainer{
+    position:relative;width:100%;height:520px;overflow:hidden;background:#000;
+    border-radius:12px;margin:20px 0;box-shadow:0 10px 30px rgba(0,0,0,0.8);
+  }
+  #vehicleImage{
+    position:absolute;
+    top:-35%;           /* ← 35% crop from top */
+    left:-10%;          /* ← 10% crop from left */
+    width:120%;         /* ← 10% extra on each side → crops 10% right too */
+    height:auto;
+  }
   .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;font-size:1.4em;}
   .spinner{width:60px;height:60px;border:6px solid #30363d;border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;margin-bottom:20px;}
   @keyframes s{to{transform:rotate(360deg)}}
@@ -45,7 +54,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
 <script>
-// FINAL CONFIRMED ORDER
+// FINAL CONFIRMED ORDER (26 vehicles)
 const vehicles = [
   "ASLAV T-1 CRV (Australia)", "M2 Bradley IFV (USA)", "Ajax CRV (UK)", "Lynx IFV (Germany)",
   "Hunter IFV (Singapore)", "Boxer CRV (Australia)", "ZBD-05 IFV (China)", "ZBD-04 IFV (China)",
@@ -80,7 +89,7 @@ function showQuestion() {
   document.querySelector(".loading").style.display = "flex";
   img.style.display = "none";
 
-  // ← THIS LINE IS NOW 100% RELIABLE (underscore instead of space)
+  // ← EXACT MATCH FOR YOUR NEW FILENAMES
   img.src = `IMG_${6394 + idx}_Large.jpeg`;
 
   img.onload = () => {
@@ -118,7 +127,7 @@ function finishQuiz() {
     <p style="font-size:2.5em">${pct}% Correct</p>
     <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.7em;background:var(--accent);border:none;border-radius:12px;">Play Again</button>
   </div>`;
-  if(pct===100) confetti({particleCount:600,spread:100,origin:{y:0.6}});
+  if(pct===100) confetti({particleCount:700,spread:110,origin:{y:0.6}});
 }
 
 window.onload = startQuiz;
