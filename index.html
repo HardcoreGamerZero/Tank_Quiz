@@ -45,7 +45,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
 <script>
-// 100% CORRECT ORDER – confirmed by you
+// EXACT CONFIRMED ORDER (26 vehicles)
 const vehicles = [
   "ASLAV T-1 CRV (Australia)", "M2 Bradley IFV (USA)", "Ajax CRV (UK)", "Lynx IFV (Germany)",
   "Hunter IFV (Singapore)", "Boxer CRV (Australia)", "ZBD-05 IFV (China)", "ZBD-04 IFV (China)",
@@ -57,9 +57,9 @@ const vehicles = [
   "F-35 Lightning II (USA)"
 ];
 
-let current = 0, score = 0, order = [], timeout;
+let current = 0, score = 0, order = [];
 
-function shuffle(arr) { return arr.map(x => [Math.random(), x]).sort(([a],[b]) => a-b).map(([_,x]) => x); }
+function shuffle(a) {return a.map(x=>[Math.random(),x]).sort(([a],[b])=>a-b).map(([_,x])=>x);}
 
 function startQuiz() {
   order = shuffle([...Array(26).keys()]);
@@ -73,27 +73,18 @@ function showQuestion() {
   const idx = order[current];
   const correctName = vehicles[idx];
 
-  document.getElementById("question").innerHTML = `<strong>Question ${current + 1}/26</strong><br>Identify this vehicle`;
-  document.getElementById("progressBar").style.width = `${(current / 26) * 100}%`;
+  document.getElementById("question").innerHTML = `<strong>Question ${current+1}/26</strong><br>Identify this vehicle`;
+  document.getElementById("progressBar").style.width = `${(current/26)*100}%`;
 
   const img = document.getElementById("vehicleImage");
-  const loading = document.querySelector(".loading");
-  loading.style.display = "flex";
+  document.querySelector(".loading").style.display = "flex";
   img.style.display = "none";
 
-  const fileNum = 6394 + idx;
-  const filename = `IMG_${fileNum} Large.jpg`;
-  img.src = encodeURIComponent(filename) + "?v=" + Date.now();   // ← THIS FIXES THE SPINNER BUG
-
-  clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    loading.style.display = "none";
-    img.style.display = "block";
-  }, 5000); // fallback if onload never fires
+  // THIS LINE IS THE PROVEN-WORKING METHOD FROM THE 2× ZOOM VERSION
+  img.src = "IMG_" + (6394 + idx) + " Large.jpg";
 
   img.onload = () => {
-    clearTimeout(timeout);
-    loading.style.display = "none";
+    document.querySelector(".loading").style.display = "none";
     img.style.display = "block";
   };
 
@@ -101,26 +92,25 @@ function showQuestion() {
   document.getElementById("nextBtn").style.display = "none";
   document.getElementById("options").innerHTML = "";
 
-  const wrong = shuffle(vehicles.filter((_, i) => i !== idx)).slice(0, 3);
+  const wrong = shuffle(vehicles.filter((_,i)=>i!==idx)).slice(0,3);
   const options = shuffle([correctName, ...wrong]);
 
   options.forEach(opt => {
-    const btn = document.createElement("button");
-    btn.textContent = opt;
-    btn.onclick = () => selectAnswer(opt === correctName, correctName, btn);
-    document.getElementById("options").appendChild(btn);
+    const b = document.createElement("button");
+    b.textContent = opt;
+    b.onclick = () => selectAnswer(opt===correctName, correctName, b);
+    document.getElementById("options").appendChild(b);
   });
 }
 
-function selectAnswer(isCorrect, correctName, btn) {
-  document.querySelectorAll("#options button").forEach(b => b.disabled = true);
-  if (isCorrect) {
-    btn.classList.add("correct");
-    score++;
+function selectAnswer(correct, name, btn) {
+  document.querySelectorAll("#options button").forEach(b=>b.disabled=true);
+  if(correct){
+    btn.classList.add("correct"); score++;
     document.getElementById("result").innerHTML = "Correct!";
-  } else {
+  }else{
     btn.classList.add("wrong");
-    document.getElementById("result").innerHTML = `Wrong!<br>Correct: <strong>${correctName}</strong>`;
+    document.getElementById("result").innerHTML = `Wrong!<br>Correct: <strong>${name}</strong>`;
   }
   document.getElementById("nextBtn").style.display = "block";
 }
@@ -131,15 +121,15 @@ function nextQuestion() {
 }
 
 function finishQuiz() {
-  const pct = Math.round((score / 26) * 100);
+  const pct = Math.round((score/26)*100);
   document.getElementById("quiz").innerHTML = `
-    <div style="text-align:center;padding:50px;">
+    <div style="text-align:center;padding:60px;">
       <h2>Quiz Complete!</h2>
       <p style="font-size:4em;margin:30px 0">${score}<small style="font-size:0.4em">/26</small></p>
       <p style="font-size:2.5em">${pct}% Correct</p>
-      <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.7em;margin-top:30px;background:var(--accent);border:none;border-radius:12px;">Play Again</button>
+      <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.7em;background:var(--accent);border:none;border-radius:12px;">Play Again</button>
     </div>`;
-  if (pct === 100) confetti({particleCount: 600, spread: 100, origin: {y: 0.6}});
+  if(pct===100) confetti({particleCount:600,spread:100,origin:{y:0.6}});
 }
 
 document.getElementById("nextBtn").addEventListener("click", nextQuestion);
