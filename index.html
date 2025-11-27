@@ -18,10 +18,11 @@
   }
   #vehicleImage{
     position:absolute;
-    top:-45%;           /* ← 45% crop from top */
-    left:-10%;          /* ← 10% crop from left */
-    width:120%;         /* ← 10% extra on each side → crops 10% right too */
     height:auto;
+    /* Desktop: aggressive 45% top crop + 10% sides */
+    top:-45%;
+    left:-10%;
+    width:120%;
   }
   .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;font-size:1.4em;}
   .spinner{width:60px;height:60px;border:6px solid #30363d;border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;margin-bottom:20px;}
@@ -33,6 +34,23 @@
   button.wrong{background:var(--red)!important;border-color:var(--red);}
   #result{font-size:1.9em;font-weight:bold;text-align:center;min-height:70px;margin:20px 0;}
   #nextBtn{display:none;margin:30px auto;padding:16px 50px;font-size:1.5em;background:var(--accent);border:none;border-radius:12px;cursor:pointer;}
+
+  /* ─────── RESPONSIVE MOBILE FIX ─────── */
+  @media (max-width: 768px) {
+    #imageContainer{height:420px;}
+    #vehicleImage{
+      top:-28% !important;   /* Much gentler top crop on phones */
+      left:-5% !important;   /* Less side crop */
+      width:110% !important; /* Keeps vehicle perfectly centered */
+    }
+    h1{font-size:2.2em;}
+    #question{font-size:1.5em;}
+    button{font-size:1.1em;padding:16px;}
+  }
+  @media (max-width: 480px) {
+    #imageContainer{height:380px;}
+    #vehicleImage{top:-25% !important;}
+  }
 </style>
 </head>
 <body>
@@ -54,7 +72,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
 <script>
-// FINAL CONFIRMED ORDER (26 vehicles)
+// EXACT SAME WORKING LOGIC + FILENAMES YOU ALREADY HAVE
 const vehicles = [
   "ASLAV T-1 CRV (Australia)", "M2 Bradley IFV (USA)", "Ajax CRV (UK)", "Lynx IFV (Germany)",
   "Hunter IFV (Singapore)", "Boxer CRV (Australia)", "ZBD-05 IFV (China)", "ZBD-04 IFV (China)",
@@ -89,7 +107,6 @@ function showQuestion() {
   document.querySelector(".loading").style.display = "flex";
   img.style.display = "none";
 
-  // ← EXACT MATCH FOR YOUR NEW FILENAMES
   img.src = `IMG_${6394 + idx}_Large.jpeg`;
 
   img.onload = () => {
