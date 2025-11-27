@@ -2,33 +2,60 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Military Vehicle Recognition Quiz</title>
+<title>Military Recognition Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-  body {font-family: Arial,sans-serif; max-width: 900px; margin:40px auto; background:#0d1117; color:#c9d1d9;}
-  h1 {text-align:center; color:#58a6ff;}
-  #quiz {text-align:center; padding:30px; background:#161b22; border-radius:12px;}
-  img {max-width:100%; height:auto; border:3px solid #30363d; border-radius:12px; margin:25px 0;}
-  .options {display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:25px 0;}
-  button {padding:14px; font-size:1.1em; background:#21262d; color:#c9d1d9; border:2px solid #30363d; border-radius:8px; cursor:pointer;}
-  button:hover {background:#238636; color:white;}
-  button.correct {background:#238636 !important; color:white;}
-  button.wrong {background:#da3633 !important; color:white;}
-  #result {margin-top:20px; font-size:1.5em; font-weight:bold; min-height:50px;}
-  #nextBtn {margin-top:20px; padding:12px 30px; font-size:1.2em; background:#58a6ff; display:none;}
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --text: #c9d1d9;
+    --accent: #58a6ff;
+    --green: #238636;
+    --red: #da3633;
+  }
+  body {margin:0; font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:20px 10px;}
+  h1 {color:var(--accent); text-align:center; margin:20px 0 10px; font-size:2.5em; text-shadow:0 0 10px #58a6ff40;}
+  #quiz {background:var(--card); width:100%; max-width:900px; border-radius:16px; padding:30px; box-shadow:0 10px 30px rgba(0,0,0,0.6); position:relative; overflow:hidden;}
+  #progress {height:8px; background:#30363d; border-radius:4px; overflow:hidden; margin:20px 0;}
+  #progressBar {height:100%; width:0%; background:var(--accent); transition:width 0.4s ease;}
+  #question {font-size:1.6em; margin-bottom:20px; text-align:center;}
+  #vehicleImage {max-width:100%; border-radius:12px; border:4px solid #30363d; box-shadow:0 10px 20px rgba(0,0,0,0.7);}
+  .loading {display:flex; flex-direction:column; align-items:center; justify-content:center; height:400px; color:#888; font-size:1.3em;}
+  .spinner {width:60px; height:60px; border:6px solid #30363d; border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:20px;}
+  @keyframes spin {to{transform:rotate(360deg);}}
+  .options {display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:15px; margin:30px 0;}
+  button {padding:18px; font-size:1.2em; background:#21262d; color:var(--text); border:2px solid #30363d; border-radius:12px; cursor:pointer; transition:all 0.3s;}
+  button:hover {background:var(--accent); color:white; transform:translateY(-4px); box-shadow:0 8px 15px rgba(88,166,255,0.3);}
+  button.correct {background:var(--green) !important; border-color:var(--green);}
+  button.wrong {background:var(--red) !important; border-color:var(--red);}
+  #result {font-size:1.8em; font-weight:bold; min-height:60px; text-shadow:0 0 10px;}
+  #nextBtn {margin-top:30px; padding:15px 40px; font-size:1.4em; background:var(--accent); border:none; border-radius:12px; display:none;}
+  #final {text-align:center; padding:40px;}
+  #final button {padding:18px 50px; font-size:1.5em;}
+  @media(max-width:600px){.options{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
+
 <h1>Military Recognition Quiz</h1>
 <div id="quiz">
+  <div id="progress"><div id="progressBar"></div></div>
   <div id="question"></div>
-  <img id="vehicleImage" src="" alt="Vehicle">
+  <div id="imageContainer">
+    <div class="loading"><div class="spinner"></div>Loading vehicle...</div>
+    <img id="vehicleImage" src="" alt="Vehicle" style="display:none;">
+  </div>
   <div class="options" id="options"></div>
-  <button id="nextBtn">Next Question →</button>
   <div id="result"></div>
+  <button id="nextBtn">Next Question →</button>
 </div>
 
+<canvas id="confetti"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 <script>
-// Order matches your photos exactly (6394 → 6417)
+// Exact order of your 24 photos
 const vehicles = [
   {name:"M2 Bradley IFV", country:"USA"},
   {name:"Ajax CRV", country:"UK"},
@@ -58,21 +85,32 @@ const vehicles = [
 
 let current = 0, score = 0, shuffled = [];
 
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()* (i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-function start(){shuffled=shuffle([...vehicles]); current=0; score=0; next();}
+function start(){shuffled=shuffle([...vehicles]); current=0; score=0; document.getElementById("quiz").innerHTML = originalQuizHTML; next();}
+
+let originalQuizHTML = document.getElementById("quiz").innerHTML;
 
 function next(){
   if(current >= shuffled.length){ end(); return; }
   const correct = shuffled[current];
-  let wrong = shuffle(vehicles.filter(v=>v.name!==correct.name)).slice(0,3);
+  const wrong = shuffle(vehicles.filter(v=>v.name!==correct.name)).slice(0,3);
   const options = shuffle([correct, ...wrong]);
 
   document.getElementById("question").innerHTML = `<strong>Question ${current+1} of ${shuffled.length}</strong><br>What is this vehicle?`;
+  document.getElementById("progressBar").style.width = `${(current/shuffled.length)*100}%`;
+
+  // Try .jpg first, then .jpeg if 404
+  const img = document.getElementById("vehicleImage");
+  img.style.display = "none";
+  document.querySelector(".loading").style.display = "flex";
+
+  const baseName = `IMG_${(6394 + current).toString().padStart(4,'0')} Large`;
+  img.src = `${baseName}.jpg?v=${Date.now()}`;
   
-  // This line uses your exact Large naming
-  document.getElementById("vehicleImage").src = `IMG_${6394 + current} Large.jpg`;
-  
+  img.onload = () => { document.querySelector(".loading").style.display="none"; img.style.display="block"; };
+  img.onerror = () => { img.src = `${baseName}.jpeg?v=${Date.now()}`; };
+
   document.getElementById("result").innerHTML = "";
   document.getElementById("nextBtn").style.display = "none";
 
@@ -80,7 +118,7 @@ function next(){
   options.forEach(o=>{
     const b = document.createElement("button");
     b.textContent = `${o.name} (${o.country})`;
-    b.onclick = ()=>choose(o===correct, correct, b);
+    b.onclick = () => choose(o===correct, correct, b);
     div.appendChild(b);
   });
 }
@@ -91,6 +129,7 @@ function choose(right, correctObj, btn){
     btn.classList.add("correct");
     score++;
     document.getElementById("result").innerHTML = "✔ Correct!";
+    if('vibrate' in navigator) navigator.vibrate(100);
   }else{
     btn.classList.add("wrong");
     document.getElementById("result").innerHTML = `✖ Wrong!<br>Correct: <strong>${correctObj.name} (${correctObj.country})</strong>`;
@@ -100,9 +139,16 @@ function choose(right, correctObj, btn){
 }
 
 function end(){
-  document.getElementById("quiz").innerHTML = `<h2>Quiz Finished!</h2>
-    <p style="font-size:2em;">Score: <strong>${score}/${shuffled.length}</strong></p>
-    <button onclick="start()" style="padding:15px 40px; font-size:1.3em;">Play Again</button>`;
+  document.getElementById("progressBar").style.width = "100%";
+  const percent = Math.round((score/shuffled.length)*100);
+  document.getElementById("quiz").innerHTML = `
+    <div id="final">
+      <h2>🎖️ Quiz Complete!</h2>
+      <p style="font-size:3em; margin:30px 0;">${score} / ${shuffled.length}</p>
+      <p style="font-size:2em;">${percent}% Correct</p>
+      <button onclick="start()" style="padding:18px 50px; font-size:1.5em; background:var(--accent); border:none; border-radius:12px; margin-top:30px;">Play Again</button>
+    </div>`;
+  if(percent===100) confetti({particleCount:200, spread:90, origin:{y:0.6}});
 }
 
 document.getElementById("nextBtn").onclick = next;
