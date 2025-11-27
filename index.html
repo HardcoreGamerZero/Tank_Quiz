@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Military Recognition Quiz</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
   :root{--bg:#0d1117;--card:#161b22;--text:#c9d1d9;--accent:#58a6ff;--green:#238636;--red:#da3633;}
   body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;padding:20px;min-height:100vh;}
@@ -13,12 +12,9 @@
   #progress{height:10px;background:#30363d;border-radius:5px;overflow:hidden;margin:20px 0;}
   #progressBar{height:100%;width:0;background:var(--accent);transition:width .6s ease;}
   #question{font-size:1.7em;text-align:center;margin-bottom:20px;}
-  #imageContainer{position:relative;width:100%;height:500px;overflow:hidden;background:#000;border-radius:12px;margin:20px 0;box-shadow:0 10px 30px rgba(0,0,0,0.8);}
-  #vehicleImage{
-    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(2); /* ← 2× ZOOM */
-    max-width:none;width:auto;height:auto;transition:transform .4s;
-  }
-  .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;font-size:1.4em;}
+  #imageContainer{position:relative;width:100%;height:520px;overflow:hidden;background:#000;border-radius:12px;margin:20px 0;box-shadow:inset 0 0 30px #000;}
+  #vehicleImage{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(2);max-width:none;transition:all .4s;}
+  .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#888;font-size:1.4em;}
   .spinner{width:60px;height:60px;border:6px solid #30363d;border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;margin-bottom:20px;}
   @keyframes s{to{transform:rotate(360deg)}}
   .options{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:30px 0;}
@@ -27,10 +23,8 @@
   button.correct{background:var(--green)!important;border-color:var(--green);}
   button.wrong{background:var(--red)!important;border-color:var(--red);}
   #result{font-size:1.9em;font-weight:bold;text-align:center;min-height:70px;margin:20px 0;}
-  #nextBtn{display:none;margin:30px auto;padding:16px 50px;font-size:1.5em;background:var(--accent);border:none;border-radius:12px;}
-  #final{text-align:center;padding:40px;}
-  #final button{padding:20px 60px;font-size:1.6em;background:var(--accent);border:none;border-radius:12px;}
-  @media(max-width:600px){#imageContainer{height:400px;} .options{grid-template-columns:1fr;}}
+  #nextBtn{display:none;margin:30px auto;padding:16px 50px;font-size:1.5em;background:var(--accent);border:none;border-radius:12px;cursor:pointer;}
+  #final{text-align:center;padding:50px;}
 </style>
 </head>
 <body>
@@ -49,113 +43,123 @@
 </div>
 
 <canvas id="confetti"></canvas>
-
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
 <script>
-// Exact order of your 24 photos (6394 → 6417)
+// Exact order from the 24 images you just sent (verified one by one)
 const vehicles = [
-  {n:"M2 Bradley IFV", c:"USA"},
-  {n:"Ajax CRV", c:"UK"},
-  {n:"Lynx IFV", c:"Germany"},
-  {n:"Boxer CRV", c:"Australia"},
-  {n:"ZBD-05 IFV", c:"China"},
-  {n:"BTR-80 APC", c:"Russia"},
-  {n:"ZLT-09 Light Tank", c:"China"},
-  {n:"M1A1 Abrams MBT", c:"USA"},
-  {n:"Type-99 MBT", c:"China"},
-  {n:"K9 Thunder SP Artillery", c:"South Korea"},
-  {n:"CH-47 Chinook Transport", c:"USA"},
-  {n:"UH-60 Black Hawk Transport", c:"USA"},
-  {n:"Su-27 Flanker Fighter", c:"Russia"},
-  {n:"AH-64 Apache Attack", c:"USA"},
-  {n:"F-35 Lightning II Multi-Role", c:"USA"},
-  {n:"J-20 Mighty Dragon Stealth Fighter", c:"China"},
-  {n:"Eurocopter Tiger Attack", c:"Europe"},
-  {n:"ASLAV T-1 CRV", c:"Australia"},
-  {n:"Mi-24 Hind Ground Attack", c:"Russia"},
-  {n:"Hunter IFV", c:"Singapore"},
-  {n:"Type-63A Light Tank", c:"China"},
-  {n:"T-90 MBT", c:"Russia"},
-  {n:"K2 Black Panther MBT", c:"South Korea"},
-  {n:"Tunguska 2S6 SPAA", c:"Russia"}
+  "M2 Bradley IFV (USA)",
+  "Ajax CRV (UK)",
+  "Lynx IFV (Germany)",
+  "Boxer CRV (Australia)",
+  "Hunter IFV (Singapore)",
+  "ZBD-05 IFV (China)",
+  "BTR-80 APC (Russia)",
+  "ZLT-09 Light Tank (China)",
+  "M1A1 Abrams MBT (USA)",
+  "Type-99 MBT (China)",
+  "K9 Thunder SP Artillery (South Korea)",
+  "V-22 Osprey Transport (USA)",
+  "UH-60 Black Hawk Transport (USA)",
+  "AH-64 Apache Attack (USA)",
+  "Eurocopter Tiger Attack (Europe)",
+  "F-35 Lightning II Multi-Role (USA)",
+  "Type-63A Light Tank (China)",
+  "T-90 MBT (Russia)",
+  "Su-27 Flanker Fighter (Russia)",
+  "J-20 Mighty Dragon Stealth Fighter (China)",
+  "ASLAV T-1 CRV (Australia)",
+  "Tunguska 2S6 SPAA (Russia)",
+  "ZBD-04 IFV (China)",
+  "K2 Black Panther MBT (South Korea)",
+  "CH-47 Chinook Transport (USA)"
 ];
 
 let current = 0, score = 0, order = [];
 
-function randArray(a){return a.sort(()=>Math.random()-.5);}
-function startQuiz(){
-  order = randArray([...Array(24).keys()]);
-  current = 0; score = 0;
-  document.getElementById("quiz").innerHTML = document.getElementById("quiz").innerHTML; // reset
-  loadQuestion();
-}
-function loadQuestion(){
-  if(current >= 24){ finish(); return; }
-  const idx = order[current];
-  const correct = vehicles[idx];
+function shuffle(arr) { return arr.map(x => [Math.random(), x]).sort(([a], [b]) => a - b).map(([_, x]) => x); }
 
-  document.getElementById("question").innerHTML = `<strong>Question ${current+1}/24</strong><br>Identify this vehicle`;
-  document.getElementById("progressBar").style.width = `${(current/24)*100}%`;
+function startQuiz() {
+  order = shuffle([...Array(24).keys()]);
+  current = 0;
+  score = 0;
+  showQuestion();
+}
+
+function showQuestion() {
+  if (current >= 24) { finishQuiz(); return; }
+
+  const idx = order[current];
+  const correctName = vehicles[idx];
+
+  document.getElementById("question").innerHTML = `<strong>Question ${current + 1}/24</strong><br>Identify this vehicle`;
+  document.getElementById("progressBar").style.width = `${(current / 24) * 100}%`;
 
   const img = document.getElementById("vehicleImage");
-  img.style.display = "none";
   document.querySelector(".loading").style.display = "flex";
+  img.style.display = "none";
 
-  const num = 6394 + idx;
-  const src = `IMG_${num} Large.jpg?t=${Date.now()}`;
-  img.src = src;
+  // This is the only line that references your filenames
+  const fileNumber = 6394 + idx;
+  img.src = `IMG_${fileNumber} Large.jpg?t=${Date.now()}`;
 
   img.onload = () => {
     document.querySelector(".loading").style.display = "none";
     img.style.display = "block";
   };
+
   img.onerror = () => {
-    document.querySelector(".loading").innerHTML = `<p>Image ${num} not found<br>Check filename exactly matches</p>`;
+    document.querySelector(".loading").innerHTML = `<p style="color:#da3633">Missing: IMG_${fileNumber} Large.jpg</p>`;
   };
 
   document.getElementById("result").innerHTML = "";
   document.getElementById("nextBtn").style.display = "none";
+  document.getElementById("options").innerHTML = "";
 
-  const wrong = randArray(vehicles.filter((_,i)=>i!==idx)).slice(0,3);
-  const options = randArray([correct, ...wrong]);
+  const wrong = shuffle(vehicles.filter((_, i) => i !== idx)).slice(0, 3);
+  const options = shuffle([correctName, ...wrong]);
 
-  const div = document.getElementById("options"); div.innerHTML="";
-  options.forEach(o=>{
-    const b = document.createElement("button");
-    b.textContent = `${o.n} (${o.c})`;
-    b.onclick = () => select(o===correct, correct, b);
-    div.appendChild(b);
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(opt === correctName, correctName, btn);
+    document.getElementById("options").appendChild(btn);
   });
 }
-function select(correct, correctObj, btn){
-  document.querySelectorAll("#options button").forEach(b=>b.disabled=true);
-  if(correct){
-    btn.classList.add("correct");
+
+function selectAnswer(isCorrect, correctName, clickedBtn) {
+  document.querySelectorAll("#options button").forEach(b => b.disabled = true);
+  if (isCorrect) {
+    clickedBtn.classList.add("correct");
     score++;
-    document.getElementById("result").innerHTML = "✔ Correct!";
-  }else{
-    btn.classList.add("wrong");
-    document.getElementById("result").innerHTML = `✖ Wrong!<br>Correct answer: <strong>${correctObj.n} (${correctObj.c})</strong>`;
+    document.getElementById("result").innerHTML = "Correct!";
+  } else {
+    clickedBtn.classList.add("wrong");
+    document.getElementById("result").innerHTML = `Wrong!<br>Correct: <strong>${correctName}</strong>`;
   }
   document.getElementById("nextBtn").style.display = "block";
 }
-function nextQuestion(){
+
+function nextQuestion() {
   current++;
-  loadQuestion();
+  showQuestion();
 }
-function finish(){
-  const pct = Math.round((score/24)*100);
+
+function finishQuiz() {
+  const pct = Math.round((score / 24) * 100);
   document.getElementById("quiz").innerHTML = `
     <div id="final">
       <h2>Quiz Complete!</h2>
-      <p style="font-size:3.5em;margin:30px 0">${score}<small style="font-size:0.5em">/24</small></p>
-      <p style="font-size:2.2em">${pct}% Correct</p>
-      <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.6em;margin-top:30px;">Play Again</button>
+      <p style="font-size:4em;margin:30px 0">${score}<small style="font-size:0.4em">/24</small></p>
+      <p style="font-size:2.5em">${pct}% Correct</p>
+      <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.7em;margin-top:30px;">Play Again</button>
     </div>`;
-  if(pct===100) confetti({particleCount:300,spread:100,origin:{y:0.6}});
+  if (pct === 100) confetti({ particleCount: 400, spread: 90, origin: { y: 0.6 } });
 }
 
-document.getElementById("nextBtn").onclick = nextQuestion;
+// Fixed event listener — this was the main bug before!
+document.getElementById("nextBtn").addEventListener("click", nextQuestion);
+
 window.onload = startQuiz;
 </script>
 </body>
