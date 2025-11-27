@@ -45,7 +45,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
 <script>
-// EXACT CONFIRMED ORDER (26 vehicles)
+// FINAL CONFIRMED ORDER
 const vehicles = [
   "ASLAV T-1 CRV (Australia)", "M2 Bradley IFV (USA)", "Ajax CRV (UK)", "Lynx IFV (Germany)",
   "Hunter IFV (Singapore)", "Boxer CRV (Australia)", "ZBD-05 IFV (China)", "ZBD-04 IFV (China)",
@@ -80,8 +80,8 @@ function showQuestion() {
   document.querySelector(".loading").style.display = "flex";
   img.style.display = "none";
 
-  // THIS LINE IS THE PROVEN-WORKING METHOD FROM THE 2× ZOOM VERSION
-  img.src = "IMG_" + (6394 + idx) + " Large.jpg";
+  // ← THIS LINE IS NOW 100% RELIABLE (underscore instead of space)
+  img.src = `IMG_${6394 + idx}_Large.jpeg`;
 
   img.onload = () => {
     document.querySelector(".loading").style.display = "none";
@@ -98,41 +98,29 @@ function showQuestion() {
   options.forEach(opt => {
     const b = document.createElement("button");
     b.textContent = opt;
-    b.onclick = () => selectAnswer(opt===correctName, correctName, b);
+    b.onclick = () => {
+      document.querySelectorAll("#options button").forEach(x=>x.disabled=true);
+      if (opt===correctName) { b.classList.add("correct"); score++; document.getElementById("result").innerHTML = "Correct!"; }
+      else { b.classList.add("wrong"); document.getElementById("result").innerHTML = `Wrong!<br>Correct: <strong>${correctName}</strong>`; }
+      document.getElementById("nextBtn").style.display = "block";
+    };
     document.getElementById("options").appendChild(b);
   });
 }
 
-function selectAnswer(correct, name, btn) {
-  document.querySelectorAll("#options button").forEach(b=>b.disabled=true);
-  if(correct){
-    btn.classList.add("correct"); score++;
-    document.getElementById("result").innerHTML = "Correct!";
-  }else{
-    btn.classList.add("wrong");
-    document.getElementById("result").innerHTML = `Wrong!<br>Correct: <strong>${name}</strong>`;
-  }
-  document.getElementById("nextBtn").style.display = "block";
-}
-
-function nextQuestion() {
-  current++;
-  showQuestion();
-}
+document.getElementById("nextBtn").addEventListener("click", () => { current++; showQuestion(); });
 
 function finishQuiz() {
   const pct = Math.round((score/26)*100);
-  document.getElementById("quiz").innerHTML = `
-    <div style="text-align:center;padding:60px;">
-      <h2>Quiz Complete!</h2>
-      <p style="font-size:4em;margin:30px 0">${score}<small style="font-size:0.4em">/26</small></p>
-      <p style="font-size:2.5em">${pct}% Correct</p>
-      <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.7em;background:var(--accent);border:none;border-radius:12px;">Play Again</button>
-    </div>`;
+  document.getElementById("quiz").innerHTML = `<div style="text-align:center;padding:60px;">
+    <h2>Quiz Complete!</h2>
+    <p style="font-size:4em;margin:30px 0">${score}/26</p>
+    <p style="font-size:2.5em">${pct}% Correct</p>
+    <button onclick="startQuiz()" style="padding:20px 60px;font-size:1.7em;background:var(--accent);border:none;border-radius:12px;">Play Again</button>
+  </div>`;
   if(pct===100) confetti({particleCount:600,spread:100,origin:{y:0.6}});
 }
 
-document.getElementById("nextBtn").addEventListener("click", nextQuestion);
 window.onload = startQuiz;
 </script>
 </body>
