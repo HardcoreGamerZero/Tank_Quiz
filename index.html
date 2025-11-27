@@ -1,1 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Military Vehicle Recognition Quiz</title>
+<style>
+  body {font-family: Arial,sans-serif; max-width: 900px; margin:40px auto; background:#0d1117; color:#c9d1d9;}
+  h1 {text-align:center; color:#58a6ff;}
+  #quiz {text-align:center; padding:30px; background:#161b22; border-radius:12px;}
+  img {max-width:100%; height:auto; border:3px solid #30363d; border-radius:12px; margin:25px 0;}
+  .options {display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:25px 0;}
+  button {padding:14px; font-size:1.1em; background:#21262d; color:#c9d1d9; border:2px solid #30363d; border-radius:8px; cursor:pointer;}
+  button:hover {background:#238636; color:white;}
+  button.correct {background:#238636 !important; color:white;}
+  button.wrong {background:#da3633 !important; color:white;}
+  #result {margin-top:20px; font-size:1.5em; font-weight:bold; min-height:50px;}
+  #nextBtn {margin-top:20px; padding:12px 30px; font-size:1.2em; background:#58a6ff; display:none;}
+</style>
+</head>
+<body>
+<h1>Military Recognition Quiz</h1>
+<div id="quiz">
+  <div id="question"></div>
+  <img id="vehicleImage" src="" alt="Vehicle">
+  <div class="options" id="options"></div>
+  <button id="nextBtn">Next Question →</button>
+  <div id="result"></div>
+</div>
 
+<script>
+// Order matches your photos exactly (6394 → 6417)
+const vehicles = [
+  {name:"M2 Bradley IFV", country:"USA"},
+  {name:"Ajax CRV", country:"UK"},
+  {name:"Lynx IFV", country:"Germany"},
+  {name:"Boxer CRV", country:"Australia"},
+  {name:"ZBD-05 IFV", country:"China"},
+  {name:"BTR-80 APC", country:"Russia"},
+  {name:"ZLT-09 Light Tank", country:"China"},
+  {name:"M1A1 Abrams MBT", country:"USA"},
+  {name:"Type-99 MBT", country:"China"},
+  {name:"K9 Thunder SP Artillery", country:"South Korea"},
+  {name:"CH-47 Chinook Transport", country:"USA"},
+  {name:"UH-60 Black Hawk Transport", country:"USA"},
+  {name:"Su-27 Flanker Fighter", country:"Russia"},
+  {name:"AH-64 Apache Attack", country:"USA"},
+  {name:"F-35 Lightning II Multi-Role", country:"USA"},
+  {name:"J-20 Mighty Dragon Stealth Fighter", country:"China"},
+  {name:"Eurocopter Tiger Attack", country:"Europe"},
+  {name:"ASLAV T-1 CRV", country:"Australia"},
+  {name:"Mi-24 Hind Ground Attack", country:"Russia"},
+  {name:"Hunter IFV", country:"Singapore"},
+  {name:"Type-63A Light Tank", country:"China"},
+  {name:"T-90 MBT", country:"Russia"},
+  {name:"K2 Black Panther MBT", country:"South Korea"},
+  {name:"Tunguska 2S6 SPAA", country:"Russia"}
+];
+
+let current = 0, score = 0, shuffled = [];
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()* (i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function start(){shuffled=shuffle([...vehicles]); current=0; score=0; next();}
+
+function next(){
+  if(current >= shuffled.length){ end(); return; }
+  const correct = shuffled[current];
+  let wrong = shuffle(vehicles.filter(v=>v.name!==correct.name)).slice(0,3);
+  const options = shuffle([correct, ...wrong]);
+
+  document.getElementById("question").innerHTML = `<strong>Question ${current+1} of ${shuffled.length}</strong><br>What is this vehicle?`;
+  
+  // This line uses your exact Large naming
+  document.getElementById("vehicleImage").src = `IMG_${6394 + current} Large.jpg`;
+  
+  document.getElementById("result").innerHTML = "";
+  document.getElementById("nextBtn").style.display = "none";
+
+  const div = document.getElementById("options"); div.innerHTML="";
+  options.forEach(o=>{
+    const b = document.createElement("button");
+    b.textContent = `${o.name} (${o.country})`;
+    b.onclick = ()=>choose(o===correct, correct, b);
+    div.appendChild(b);
+  });
+}
+
+function choose(right, correctObj, btn){
+  document.querySelectorAll("#options button").forEach(b=>b.disabled=true);
+  if(right){
+    btn.classList.add("correct");
+    score++;
+    document.getElementById("result").innerHTML = "✔ Correct!";
+  }else{
+    btn.classList.add("wrong");
+    document.getElementById("result").innerHTML = `✖ Wrong!<br>Correct: <strong>${correctObj.name} (${correctObj.country})</strong>`;
+  }
+  document.getElementById("nextBtn").style.display="block";
+  current++;
+}
+
+function end(){
+  document.getElementById("quiz").innerHTML = `<h2>Quiz Finished!</h2>
+    <p style="font-size:2em;">Score: <strong>${score}/${shuffled.length}</strong></p>
+    <button onclick="start()" style="padding:15px 40px; font-size:1.3em;">Play Again</button>`;
+}
+
+document.getElementById("nextBtn").onclick = next;
+window.onload = start;
+</script>
+</body>
+</html>
