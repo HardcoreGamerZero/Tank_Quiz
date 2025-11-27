@@ -101,7 +101,7 @@ function showQuestion() {
 
   // This is the only line that references your filenames
   const fileNumber = 6394 + idx;
-  img.src = `IMG_${fileNumber} Large.jpg?t=${Date.now()}`;
+  img.src = `IMG_${fileNumber} Large.jpeg?t=${Date.now()}`;
 
   img.onload = () => {
     document.querySelector(".loading").style.display = "none";
@@ -109,7 +109,7 @@ function showQuestion() {
   };
 
   img.onerror = () => {
-    document.querySelector(".loading").innerHTML = `<p style="color:#da3633">Missing: IMG_${fileNumber} Large.jpg</p>`;
+    document.querySelector(".loading").innerHTML = `<p style="color:#da3633">Missing: IMG_${fileNumber} Large.jpeg</p>`;
   };
 
   document.getElementById("result").innerHTML = "";
